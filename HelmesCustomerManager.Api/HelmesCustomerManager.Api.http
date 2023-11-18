@@ -1,0 +1,6 @@
+@HelmesCustomerManager.Api_HostAddress = http://localhost:5255
+
+GET {{HelmesCustomerManager.Api_HostAddress}}/sectors/
+Accept: application/json
+
+###

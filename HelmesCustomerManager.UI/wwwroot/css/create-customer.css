@@ -1,0 +1,41 @@
+﻿form {
+    margin: auto;
+    width: 70%;
+}
+
+.form-group {
+    margin: 2%;
+}
+
+ul {
+    list-style: none;
+}
+
+li {
+    padding: 3px;
+}
+
+.btn-primary {
+    float: right;
+}
+
+.custom-select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow-y: scroll;
+    max-height: 300px;
+}
+
+.selected-sector{
+    font-size:small;
+    border-radius: 15px;
+    padding: 10px;
+    display: inline-block;
+    margin: 5px;
+    color: white;
+}
+
+.selected-sectors {
+    padding: 1%;
+}

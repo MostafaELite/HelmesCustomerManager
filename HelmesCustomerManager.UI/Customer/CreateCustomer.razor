@@ -1,0 +1,185 @@
+﻿@page "/"
+@page "/customer/{customerId:guid?}"
+
+@using System.Text.Json
+@using System.Net.Http.Headers
+@using HelmesCustomerManager.Domain.Dtos
+@using HelmesCustomerManager.Domain.Entities
+
+
+<link href="/css/create-customer.css" rel="stylesheet" />
+
+<EditForm Model="customer" OnValidSubmit="AddInvestor">
+    <div class="form-group">
+        <label> Name </label>
+        <input class="form-control" @bind="customer.Name" required />
+    </div>
+
+    <div class="form-group">
+        <label> Sectors </label>
+        <div class="custom-select" id="sectorList">
+            <ul>
+                @foreach (var sector in Sectors ?? Enumerable.Empty<Sector>())
+                {
+                    <li>
+                        <input type="checkbox" id="@sector.Id" @onchange="(args) => SectorSelectionSelected(sector.Id, sector.Name, args)" />
+                        @sector.Name
+                    </li>
+
+                    if (sector.SubSectors?.Any() != true)
+                        continue;
+
+
+                    <li>
+                        <ul>
+                            @foreach (var subSector in sector.SubSectors)
+                            {
+                                <li>
+                                    <input type="checkbox" id="@subSector.Id" @onchange="(args) => SectorSelectionSelected(subSector.Id, subSector.Name, args)" />
+                                    @subSector.Name
+                                </li>
+
+                                if (subSector.SubSectors?.Any() != true)
+                                    continue;
+                                <ul>
+                                    @foreach (var grandChild in subSector.SubSectors)
+                                    {
+                                        <li>
+                                            <input type="checkbox" id="@grandChild.Id" @onchange="(args) => SectorSelectionSelected(grandChild.Id, grandChild.Name, args)" />
+                                            @grandChild.Name
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </ul>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="selected-sectors-container">
+            <ul class="selected-sectors">
+                @foreach (var selectedSector in selectedSectors)
+                {
+                    <li class="selected-sector bg-info" id="selected-@selectedSector.Key">@selectedSector.Value</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    @if (errorMessage != null)
+    {
+        <div id="error-message" class="alert alert-danger">@errorMessage</div>
+    }
+    <div class="form-group">
+        <input type="checkbox" value="acknowledge" required />
+        <label>Acknowledge</label>
+    </div>
+
+    <div style="text-align: right;">
+        <input type="submit" class="btn btn-primary" value="Save" disabled="@(!canSubmit)" />
+    </div>
+</EditForm>
+
+
+
+
+@code
+{
+    [Parameter]
+    public Guid? CustomerId { get; set; }
+
+    @inject HttpClient client;
+
+    private Sector[]? Sectors { get; set; }
+    private string? errorMessage;
+    private bool canSubmit = true;
+    private CreateCustomerModel customer = new() { Name = null, SelectedSectors = null };
+
+    private Dictionary<Guid, string> selectedSectors = new();
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var response = await client.GetAsync(BackendRoutes.SectorEndpoint);
+        var parsedResponse = await response.Content.ReadAsStringAsync();
+
+        var option = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+
+        //TODO: Error Handling
+        var sectors = JsonSerializer.Deserialize<IEnumerable<Sector>>(parsedResponse, option);
+        Sectors = sectors?.ToArray();
+
+        if (CustomerId != null)
+        {
+            GetCustomer();
+        }
+
+    }
+
+    private async Task GetCustomer()
+    {
+        var response = await client.GetAsync(BackendRoutes.GetCustomer(CustomerId.Value));
+        var parsedResponse = await response.Content.ReadAsStringAsync();
+        
+        var option = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+
+        //TODO: Error Handling
+        var customer = JsonSerializer.Deserialize<Customer>(parsedResponse, option);
+    }
+
+
+    private void SectorSelectionSelected(Guid sectorId, string sectorName, ChangeEventArgs args)
+    {
+        var isChecked = (bool)args.Value;
+
+        if (isChecked)
+            selectedSectors.Add(sectorId, sectorName);
+
+        else
+            selectedSectors.Remove(sectorId);
+
+
+        errorMessage = selectedSectors.Count() > 5 ? " You can only selected up to 5 sectors" : null;
+        canSubmit = selectedSectors.Count() <= 5;
+    }
+
+    private async Task AddInvestor()
+    {
+        if (!Validate())
+            return;
+
+        errorMessage = null;
+        customer.SelectedSectors = selectedSectors.Select(selectedSector => selectedSector.Key).ToHashSet();
+        var investorPayload = JsonSerializer.Serialize(customer);
+        var response = await client.PostAsync(BackendRoutes.CustomerEndpoint, new StringContent(investorPayload, new MediaTypeHeaderValue("application/json")));
+
+        if (response.IsSuccessStatusCode)
+        {
+            HandleSuccess();
+            return;
+        }
+
+        await HandleError(response);
+    }
+
+
+    private async Task HandleError(HttpResponseMessage response) => errorMessage = await response.Content.ReadAsStringAsync();
+
+    private void HandleSuccess()
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool Validate()
+    {
+        //combine different kinds of validations
+        if (selectedSectors.Count() > 5)
+        {
+            errorMessage = "You can only selected up to 5 sectors";
+            return false;
+        }
+
+        return true;
+    }
+}

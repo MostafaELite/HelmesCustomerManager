@@ -1,0 +1,50 @@
+﻿@page "/list"
+
+@using HelmesCustomerManager.Domain.Entities
+@using System.Text.Json
+
+<h3 class="margin-bottom">Customers:</h3>
+
+@if (customers?.Any() != true)
+{
+    <div class="alert">Did you even add customers bro?</div>
+    return;
+}
+<table class="table table-dark customers-table">
+    <thead>
+        <tr>
+            <th class="col-3">Name</th>
+            <th class="col-3"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var customer in customers)
+        {
+            <tr>
+                <td class="col">@customer.Name</td>
+                <td class="col"><a href="/customer/@customer.Id"> Edit </a></td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+@code {
+
+    @inject HttpClient backend;
+
+    private IEnumerable<Customer> customers;
+    protected override async Task OnInitializedAsync()
+    {
+        //Add Http error handler
+        var customersResponse = await backend.GetAsync(BackendRoutes.CustomerEndpoint);
+        var responsePayload = await customersResponse.Content.ReadAsStringAsync();
+        var serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        customers = JsonSerializer.Deserialize<IEnumerable<Customer>>(responsePayload, serializerOptions);
+    }
+}
+
+<style>
+    .margin-bottom {
+        margin-bottom: 30px;
+    }
+</style>
