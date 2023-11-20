@@ -1,11 +1,12 @@
 ﻿using HelmesCustomerManager.Domain.Entities;
 
-namespace HelmesCustomerManager.Domain.RepositoryInterfaces
-{
-    public interface ICustomerRepo
-    {
-        void AddCustomer(Customer customerModel);
+namespace HelmesCustomerManager.Domain.RepositoryInterfaces;
 
-        IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds);
-    }
+public interface ICustomerRepo
+{
+    IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds);        
+
+    Task AddCustomerAsync(Customer customerModel);
+
+    Task UpdateCustomer(Customer updatedCustomer);
 }

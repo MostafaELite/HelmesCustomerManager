@@ -11,11 +11,16 @@ namespace HelmesCustomerManager.Api
             config.RequireExplicitMapping = false;
             config.RequireDestinationMemberSource = false;
             config
-                .NewConfig<CreateCustomerModel, Customer>()
-                .Map(dest => dest.Sections, src => src.SelectedSectors);
+                .ForType<Customer, CustomerViewModel>()
+                .TwoWays()
+                .Map(dest => dest.SelectedSectors, src => src.Sectors);
 
             config.NewConfig<Guid, Sector>()
                 .Map(dest => dest.Id, src => src);
+
+
+            config.NewConfig<Sector, Guid>()
+                .MapWith(sector => sector.Id);
 
         }
     }

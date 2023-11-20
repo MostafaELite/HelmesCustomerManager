@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-
 namespace HelmesCustomerManager.Persistence;
 
 public class EntityConfig
@@ -11,8 +10,18 @@ public class EntityConfig
     {
         modelBuilder.Entity<Customer>(sectorConfig =>
         {
-            sectorConfig.HasMany(customer => customer.Sections)
-                .WithMany();
+            sectorConfig
+                .HasMany(customer => customer.Sectors)
+                .WithMany()
+                .UsingEntity(
+                "CustomerSectors",
+                r => r.HasOne(typeof(Sector)).WithMany().HasPrincipalKey(nameof(Sector.Id)),
+                l => l.HasOne(typeof(Customer)).WithMany().HasPrincipalKey(nameof(Customer.Id)),
+                joint =>
+                {
+                    joint.Property<Guid>("JointId");
+                    joint.HasKey("JointId");
+                });
         });
     }
 

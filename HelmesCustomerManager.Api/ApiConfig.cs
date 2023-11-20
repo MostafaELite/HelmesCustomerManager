@@ -11,7 +11,7 @@ namespace HelmesCustomerManager.Api
         {
             services.AddDbContext<HelmesContext>();
             await using var context = new HelmesContext();
-            context.Database.EnsureCreated();
+            _ = context.Database.EnsureCreated();
         }
 
         internal static void RegisterRepos(IServiceCollection services)

@@ -5,7 +5,9 @@ namespace HelmesCustomerManager.Domain.Services;
 
 public interface ICustomerService
 {
-    void AddCustomer(CreateCustomerModel customerModel);
-
     IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerId = null);
+
+    Task<Customer> AddCustomer(CustomerViewModel customerModel);
+
+    Task UpdateCustomer(Guid customerId, CustomerViewModel updatedPayload);
 }

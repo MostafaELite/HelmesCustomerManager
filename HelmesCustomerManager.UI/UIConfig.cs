@@ -12,8 +12,7 @@ namespace HelmesCustomerManager.UI
             builder.Services.AddScoped(sp => new HttpClient
             {
                 BaseAddress = new Uri(address)
-            }
-            );
+            });
         }
     }
 }

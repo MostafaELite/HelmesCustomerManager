@@ -1,32 +1,70 @@
 ﻿using HelmesCustomerManager.Domain.Entities;
 using HelmesCustomerManager.Domain.RepositoryInterfaces;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace HelmesCustomerManager.Persistence.Repos;
 
-public class CustomerRepo(HelmesContext _context) : ICustomerRepo
+public class CustomerRepo(HelmesContext context) : ICustomerRepo
 {
+    public HelmesContext Context { get; } = context;
+
     public IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds)
     {
         var query = customerIds?.Any() != true
-            ? _context.Customer
-            : _context.Customer.Where(customer => customerIds.Contains(customer.Id));
+            ? Context.Customer
+            : Context.Customer.Where(customer => customerIds.Contains(customer.Id));
 
         var customers = query
-            .Include(customer => customer.Sections)
+            .Include(customer => customer.Sectors)
+            .AsNoTracking()
             .ToArray();
         return customers;
     }
 
-    public void AddCustomer(Customer customer)
+    public async Task AddCustomerAsync(Customer customer)
     {
-        _context.Customer.Add(customer);
-        foreach (var section in customer.Sections)
+        Context.Customer.Add(customer);
+        UntrackSections(customer.Sectors);
+        await Context.SaveChangesAsync();
+    }
+
+    public async Task UpdateCustomer(Customer updatedCustomer)
+    {
+        var existingCustomer = context.Customer
+            .Include(c => c.Sectors)
+            .FirstOrDefault(c => c.Id == updatedCustomer.Id);
+
+        existingCustomer.Name = updatedCustomer.Name;
+
+        var selectedSectorIds = updatedCustomer.Sectors.Select(sector => sector.Id).ToHashSet();
+        var existingSectorIds = existingCustomer.Sectors.Select(sector => sector.Id);
+
+        var addedSectorsIds = selectedSectorIds.Except(existingSectorIds);
+
+        //TODO: use join
+        foreach (var existingSector in existingCustomer.Sectors)
+            if (!selectedSectorIds.Contains(existingSector.Id))
+                existingCustomer.Sectors.Remove(existingSector);
+
+        foreach (var sectorId in addedSectorsIds)
+            existingCustomer.Sectors.Add(new Sector { Id = sectorId });
+
+        UntrackSections(updatedCustomer.Sectors);
+        await Context.SaveChangesAsync();
+    }
+
+    private void UntrackSections(IEnumerable<Sector> sectors)
+    {
+        foreach (var sector in sectors)
         {
-            //TODO: check if already tracked
-            var updatedSection = _context.Entry(section);
-            updatedSection.State = EntityState.Unchanged;
+            var alreadyTracked = context.ChangeTracker.Entries<Sector>().FirstOrDefault(tracked => tracked.Entity.Id == sector.Id);
+            if (alreadyTracked != null)
+            {
+                alreadyTracked.State = EntityState.Unchanged;
+                continue;
+            }
+            Context.Entry(sector).State = EntityState.Unchanged;
         }
-        _context.SaveChanges();
     }
 }

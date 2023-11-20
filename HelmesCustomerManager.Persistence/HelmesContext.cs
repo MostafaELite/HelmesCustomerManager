@@ -15,7 +15,11 @@ namespace HelmesCustomerManager.Persistence
             EntityConfig.ConfigureSectors(modelBuilder);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+            optionsBuilder.LogTo(Console.WriteLine);
             optionsBuilder.UseInMemoryDatabase("HelmesCustomers_MostafaAhmed");
+        }
     }
 }

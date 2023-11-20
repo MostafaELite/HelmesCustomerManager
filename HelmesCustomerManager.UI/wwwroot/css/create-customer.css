@@ -2,9 +2,12 @@
     margin: auto;
     width: 70%;
 }
+.form-label {
+    margin-bottom:10px;
+}
 
 .form-group {
-    margin: 2%;
+    margin: 3%;
 }
 
 ul {
