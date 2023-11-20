@@ -22,6 +22,7 @@ Needless to say, this is not how I would make a decision in a real life scenario
 - Selecting a sector should select all of it's subsectors, and better UI and UX, specially with validations.
 - Improve the quality of the UI code, reducing redundancy by building reusable sub compnent for rendering a sector.
 - Improved Encapsulation for entities, better usage of nullable ref types and required props, introduce more DTOs.
+- Fix the classic routing issue in which when u click on add customer while being already in the page nothing happens
 
 ### Solution:
 - Running the solution:
