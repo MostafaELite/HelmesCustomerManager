@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmesCustomerManager.Api", "HelmesCustomerManager.Api\HelmesCustomerManager.Api.csproj", "{105FD01F-08FB-4632-A1DC-98DC039100FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelmesCustomerManager.Api", "HelmesCustomerManager.Api\HelmesCustomerManager.Api.csproj", "{105FD01F-08FB-4632-A1DC-98DC039100FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmesCustomerManager.Domain", "HelmesCustomerManager.Domain\HelmesCustomerManager.Domain.csproj", "{F6592D86-21FB-4C11-AE22-8EA398C758B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelmesCustomerManager.Domain", "HelmesCustomerManager.Domain\HelmesCustomerManager.Domain.csproj", "{F6592D86-21FB-4C11-AE22-8EA398C758B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmesCustomerManager.Persistence", "HelmesCustomerManager.Persistence\HelmesCustomerManager.Persistence.csproj", "{5B2063EE-096A-4289-B667-E2F7F0F5B1EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelmesCustomerManager.Persistence", "HelmesCustomerManager.Persistence\HelmesCustomerManager.Persistence.csproj", "{5B2063EE-096A-4289-B667-E2F7F0F5B1EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmesCustomerManager.UI", "HelmesCustomerManager.UI\HelmesCustomerManager.UI.csproj", "{1F8E5FAB-965A-4AC0-A100-799FF59691E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelmesCustomerManager.UI", "HelmesCustomerManager.UI\HelmesCustomerManager.UI.csproj", "{1F8E5FAB-965A-4AC0-A100-799FF59691E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,19 +1,16 @@
 ﻿using HelmesCustomerManager.Domain.Entities;
 using HelmesCustomerManager.Domain.RepositoryInterfaces;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace HelmesCustomerManager.Persistence.Repos;
 
 public class CustomerRepo(HelmesContext context) : ICustomerRepo
 {
-    public HelmesContext Context { get; } = context;
-
     public IEnumerable<Customer> GetCustomers(IEnumerable<Guid> customerIds)
     {
         var query = customerIds?.Any() != true
-            ? Context.Customer
-            : Context.Customer.Where(customer => customerIds.Contains(customer.Id));
+            ? context.Customer
+            : context.Customer.Where(customer => customerIds.Contains(customer.Id));
 
         var customers = query
             .Include(customer => customer.Sectors)
@@ -24,34 +21,34 @@ public class CustomerRepo(HelmesContext context) : ICustomerRepo
 
     public async Task AddCustomerAsync(Customer customer)
     {
-        Context.Customer.Add(customer);
+        context.Customer.Add(customer);
         UntrackSections(customer.Sectors);
-        await Context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     public async Task UpdateCustomer(Customer updatedCustomer)
     {
         var existingCustomer = context.Customer
             .Include(c => c.Sectors)
-            .FirstOrDefault(c => c.Id == updatedCustomer.Id);
+            .FirstOrDefault(c => c.Id == updatedCustomer.Id) ??
+                               throw new Exception($"Can't find a customer with the Id {updatedCustomer.Id}");
 
         existingCustomer.Name = updatedCustomer.Name;
 
-        var selectedSectorIds = updatedCustomer.Sectors.Select(sector => sector.Id).ToHashSet();
+        var selectedSectorIds = updatedCustomer.Sectors.Select(sector => sector.Id);
         var existingSectorIds = existingCustomer.Sectors.Select(sector => sector.Id);
 
-        var addedSectorsIds = selectedSectorIds.Except(existingSectorIds);
+        var addedSectorsIds = selectedSectorIds.Except(existingSectorIds).ToHashSet();
+        var removedSectorIds = existingCustomer.Sectors.Where(sector => !selectedSectorIds.Contains(sector.Id));
 
-        //TODO: use join
-        foreach (var existingSector in existingCustomer.Sectors)
-            if (!selectedSectorIds.Contains(existingSector.Id))
-                existingCustomer.Sectors.Remove(existingSector);
+        foreach (var removedSector in removedSectorIds)
+            existingCustomer.Sectors.Remove(removedSector);
 
         foreach (var sectorId in addedSectorsIds)
-            existingCustomer.Sectors.Add(new Sector { Id = sectorId });
+            existingCustomer.Sectors.Add(new Sector { Id = sectorId, Name = string.Empty});
 
         UntrackSections(updatedCustomer.Sectors);
-        await Context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     private void UntrackSections(IEnumerable<Sector> sectors)
@@ -64,7 +61,7 @@ public class CustomerRepo(HelmesContext context) : ICustomerRepo
                 alreadyTracked.State = EntityState.Unchanged;
                 continue;
             }
-            Context.Entry(sector).State = EntityState.Unchanged;
+            context.Entry(sector).State = EntityState.Unchanged;
         }
     }
 }
