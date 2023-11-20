@@ -38,7 +38,7 @@ else
                                 @foreach (var subSector in sector.SubSectors)
                                 {
                                     <li>
-                                        <input type="checkbox" id="@subSector.Id" @onchange="(args) => SectorSelectionSelected(subSector.Id, subSector.Name, args)" checked="@customer.SelectedSectors?.Contains(sector.Id)" />
+                                        <input type="checkbox" id="@subSector.Id" @onchange="(args) => SectorSelectionSelected(subSector.Id, subSector.Name, args)" checked="@customer.SelectedSectors?.Contains(subSector.Id)" />
                                         @subSector.Name
                                     </li>
 
@@ -48,7 +48,7 @@ else
                                         @foreach (var grandChild in subSector.SubSectors)
                                         {
                                             <li>
-                                                <input type="checkbox" id="@grandChild.Id" @onchange="(args) => SectorSelectionSelected(grandChild.Id, grandChild.Name, args)" checked="@customer.SelectedSectors?.Contains(sector.Id)" />
+                                                <input type="checkbox" id="@grandChild.Id" @onchange="(args) => SectorSelectionSelected(grandChild.Id, grandChild.Name, args)" checked="@customer.SelectedSectors?.Contains(grandChild.Id)" />
                                                 @grandChild.Name
                                             </li>
                                         }
@@ -88,8 +88,6 @@ else
 
 
 
-
-
 @code
 {
     //Params and injectable
@@ -115,12 +113,25 @@ else
 
         if (CustomerId != null)
         {
+            var flattenedSectors = new List<Sector>();
+            FlattenSectors(Sectors, flattenedSectors);
+
             customer = await GetCustomer();
-            selectedSectors = Sectors
+            selectedSectors = flattenedSectors
                 .Where(sector => customer.SelectedSectors.Contains(sector.Id))
                 .ToDictionary(sector => sector.Id, sector => sector.Name);
         }
 
+    }
+
+    private void FlattenSectors(IEnumerable<Sector> sectors, List<Sector> result)
+    {
+        foreach (var sector in sectors)
+        {
+            result.Add(sector);
+            if (sector.SubSectors != null)
+                FlattenSectors(sector.SubSectors, result);
+        }
     }
 
     private async Task<CustomerViewModel> GetCustomer()
@@ -166,6 +177,7 @@ else
             return;
         }
 
+        errorMessage = null;
         customer.SelectedSectors = selectedSectors
             .Select(selectedSector => selectedSector.Key)
             .ToHashSet();
